@@ -1,7 +1,6 @@
 <div class="jobResumes add form">
 	<?php echo $this->Form->create('JobResume'); ?>
 	<fieldset>
-		<?php echo $this->Form->input('name'); ?>
 		<?php echo $this->Form->input('JobResume.name'); ?>
 		<?php echo $this->element('Media.selector'); ?>
 		<?php echo $this->Form->input('JobResume.email'); ?>
