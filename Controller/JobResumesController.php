@@ -14,7 +14,11 @@ class JobResumesController extends JobsAppController {
  * 
  */
 	public function index() {
-		debug($this->paginate());
+		$this->paginate['contain'][] = 'Creator';
+		if (CakePlugin::loaded('Categories')) {
+			$this->paginate['contain'][] = 'Category';
+		}
+		$this->set('jobResumes', $this->paginate());
 	}
 
 /**
@@ -23,6 +27,9 @@ class JobResumesController extends JobsAppController {
  * @param uuid $id
  */
  	public function view($id = null) {
+		if ($id == 'my') {
+			return $this->_getMy(array('action' => 'view'));
+		}
 		$this->JobResume->id = $id;
 		if (!$this->JobResume->exists()) {
 			throw new NotFoundException(__('Resume not found'));
@@ -34,6 +41,14 @@ class JobResumesController extends JobsAppController {
 		$contain[] = 'Creator';
 		$this->JobResume->contain($contain);
 		$this->set('jobResume', $this->JobResume->read());
+ 	}
+
+/**
+ * View My
+ */
+ 	protected function _getMy($url = array()) {
+ 		$id = $this->JobResume->field('id', array('JobResume.creator_id' => $this->Session->read('Auth.User.id')), 'created DESC');
+		$this->redirect($url + array($id));
  	}
 	
 /**
@@ -58,6 +73,9 @@ class JobResumesController extends JobsAppController {
  * @param uuid $id
  */
 	public function edit($id = null) {
+		if ($id == 'my') {
+			return $this->_getMy(array('action' => 'edit'));
+		}
 		$this->JobResume->id = $id;
 		if (!$this->JobResume->exists()) {
 			throw new NotFoundException(__('Resume not found'));
@@ -70,7 +88,12 @@ class JobResumesController extends JobsAppController {
 		}
 		if (CakePlugin::loaded('Categories')) {
 			$this->set('categories', $this->JobResume->Category->find('list', array('conditions' => array('Category.model' => 'JobResume'))));
+			$contain[] = 'Category';
+			$this->JobResume->contain(array('Category'));
 		}
+		$contain[] = 'Creator';
+		$this->JobResume->contain($contain);
+		$this->request->data = $this->JobResume->read();
 	}
 
 /**

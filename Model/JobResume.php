@@ -1,4 +1,6 @@
 <?php
+App::uses('JobsAppModel', 'Jobs.Model');
+
 class JobResume extends JobsAppModel {
 
 	public $name = 'JobResume';

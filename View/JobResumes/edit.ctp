@@ -3,7 +3,7 @@
 	<fieldset>
 		<?php echo $this->Form->input('JobResume.id'); ?>
 		<?php echo $this->Form->input('JobResume.name'); ?>
-		<?php echo $this->element('Media.selector'); ?>
+		<?php echo $this->element('Media.selector', array('theme' => 'boot3')); ?>
 		<?php echo $this->Form->input('JobResume.email'); ?>
 		<?php echo $this->Form->input('JobResume.phone'); ?>
 		<?php echo $this->Form->input('JobResume.cover', array('type' => 'richtext')); ?>
@@ -11,7 +11,7 @@
 		<?php echo $this->Form->input('JobResume.city'); ?>
 		<?php echo $this->Form->input('JobResume.state', array('options' => states())); ?>
 		<?php echo $this->Form->input('JobResume.zip'); ?>
-		<?php echo $this->Form->input('JobResume.country'); ?>
+		<?php echo $this->Form->input('JobResume.country', array('options' => Zuha::enum('COUNTRIES', null, array('fields' => array('Enumeration.name', 'Enumeration.name'))))); ?>
 		<?php echo $this->Form->input('JobResume.leadin'); ?>
 		<?php echo $this->Form->input('JobResume.addon'); ?>
 		<?php echo CakePlugin::loaded('Categories') ? $this->Form->input('Category', array('multiple' => 'checkbox')) : null; ?>
