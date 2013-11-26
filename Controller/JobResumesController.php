@@ -5,9 +5,13 @@ class JobResumesController extends JobsAppController {
 	
 	public $uses = array('Jobs.JobResume');
 	
-	// public function __construct($request = null, $response = null) {
-		// parent::__construct($request, $response);
-	// }
+	 public function __construct($request = null, $response = null) {
+	 if (CakePlugin::loaded('Categories')) {
+	 	$this->components[] = 'Categories.Categories';
+	 }
+		parent::__construct($request, $response);
+	 
+	}
 
 /**
  * Index method
@@ -17,7 +21,50 @@ class JobResumesController extends JobsAppController {
 		$this->paginate['contain'][] = 'Creator';
 		if (CakePlugin::loaded('Categories')) {
 			$this->paginate['contain'][] = 'Category';
+			
+			if(isset($this->request->query['categories'])) {
+				$this->set('title_for_layout', $this->request->query['categories'] . ' < ' . __('Job Resumes') . ' | ' . __SYSTEM_SITE_NAME);
+				$categoriesParam = explode(';', rawurldecode($this->request->query['categories']));
+				$this->set('selected_categories', json_encode($categoriesParam));
+				$joins = array(
+			           array('table'=>'categorized', 
+			                 'alias' => 'Categorized',
+			                 'type'=>'left',
+			                 'conditions'=> array(
+			                 	'Categorized.foreign_key = JobResume.id'
+			           )),
+			           array('table'=>'categories', 
+			                 'alias' => 'Category',
+			                 'type'=>'left',
+			                 'conditions'=> array(
+			                 	'Category.id = Categorized.category_id'
+					   ))
+			         );
+				$this->paginate['joins'] = $joins;
+				$this->paginate['order']['JobResume.created'] = 'DESC';
+				$this->paginate['conditions']['Category.name'] = $categoriesParam;
+				$this->paginate['fields'] = array(
+					'DISTINCT JobResume.id',
+					'JobResume.name',
+					'JobResume.leadin',
+					'JobResume.search_tags'
+					
+					);
+			}
 		}
+
+		if(isset($this->request->query['q'])) {
+			$this->set('title_for_layout', $this->request->query['q'] . ' < ' . __('Job Resumes') . ' | ' . __SYSTEM_SITE_NAME);
+			$categoriesParam = explode(';', rawurldecode($this->request->query['categories']));
+			$this->paginate['conditions']['Category.name'] = $categoriesParam;
+			$this->paginate['conditions']['JobResume.country'] = $this->request->query['country'];
+			$this->paginate['conditions']['OR'] = array(
+				'JobResume.name LIKE' => '%' . $this->request->query['q'] . '%',
+				//'JobResume.leadin LIKE' => '%' . $this->request->query['q'] . '%',
+				'JobResume.search_tags LIKE' => '%' . $this->request->query['q'] . '%'
+			); 
+		}//
+
 		$this->set('jobResumes', $this->paginate());
 	}
 

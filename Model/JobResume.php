@@ -14,6 +14,8 @@ class JobResume extends JobsAppModel {
 			'fields' => '',
 			'order' => ''
 		));
+		
+		
 
 	public function __construct($id = false, $table = null, $ds = null) {
 		if(CakePlugin::loaded('Media')) {
@@ -31,5 +33,12 @@ class JobResume extends JobsAppModel {
 			$this->actsAs['Categories.Categorizable'] = array('modelAlias' => 'JobResume');
 		}
 		parent::__construct($id, $table, $ds);
+	}
+	
+	public function beforeSave($options = array()){
+		if (empty($this->data['JobResume']['search_tags'])) {
+	        $this->data['JobResume']['search_tags'] = $this->data['JobResume']['leadin'];
+	   	}
+	   	return true;
 	}
 }

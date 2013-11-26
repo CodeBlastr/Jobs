@@ -49,6 +49,7 @@ class JobsSchema extends CakeSchema {
 		'modifier_id' => array('type' => 'string', 'null' => false, 'default' => NULL, 'length' => 36, 'collate' => 'utf8_general_ci', 'comment' => 'Modifier', 'charset' => 'utf8'),
 		'created' => array('type' => 'datetime', 'null' => false, 'default' => NULL, 'comment' => 'Created Date'),
 		'modified' => array('type' => 'datetime', 'null' => false, 'default' => NULL, 'comment' => 'Modified Date'),
+		'search_tags' => array('type' => 'text', 'null' => true, 'default' => null, 'collate' => 'utf8_general_ci', 'charset' => 'utf8'), 
 		'indexes' => array('PRIMARY' => array('column' => 'id', 'unique' => 1)),
 		'tableParameters' => array('charset' => 'utf8', 'collate' => 'utf8_general_ci', 'engine' => 'MyISAM')
 	);
