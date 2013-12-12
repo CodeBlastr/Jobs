@@ -22,8 +22,7 @@ class JobResumesController extends JobsAppController {
 		if (CakePlugin::loaded('Categories')) {
 			$this->paginate['contain'][] = 'Category';
 			
-			if(isset($this->request->query['categories'])) {
-				$this->set('title_for_layout', $this->request->query['categories'] . ' < ' . __('Job Resumes') . ' | ' . __SYSTEM_SITE_NAME);
+			if (isset($this->request->query['categories']) && !empty($this->request->query['categories'])) {
 				$categoriesParam = explode(';', rawurldecode($this->request->query['categories']));
 				$this->set('selected_categories', json_encode($categoriesParam));
 				$joins = array(
@@ -48,22 +47,30 @@ class JobResumesController extends JobsAppController {
 					'JobResume.name',
 					'JobResume.leadin',
 					'JobResume.search_tags'
-					
 					);
 			}
 		}
 
-		if(isset($this->request->query['q'])) {
-			$this->set('title_for_layout', $this->request->query['q'] . ' < ' . __('Job Resumes') . ' | ' . __SYSTEM_SITE_NAME);
-			$categoriesParam = explode(';', rawurldecode($this->request->query['categories']));
-			$this->paginate['conditions']['Category.name'] = $categoriesParam;
-			$this->paginate['conditions']['JobResume.country'] = $this->request->query['country'];
+		if (isset($this->request->query['country']) && !empty($this->request->query['country'])) {
+			$this->paginate['conditions']['JobResume.country'] = $this->request->query['country'];	
+		}
+
+		if (isset($this->request->query['q']) && !empty($this->request->query['q'])) {
 			$this->paginate['conditions']['OR'] = array(
 				'JobResume.name LIKE' => '%' . $this->request->query['q'] . '%',
 				//'JobResume.leadin LIKE' => '%' . $this->request->query['q'] . '%',
 				'JobResume.search_tags LIKE' => '%' . $this->request->query['q'] . '%'
-			); 
-		}//
+			);
+		}
+
+		$pageTitle = '';
+		$pageTitle .= (!empty($this->request->query['q'])) ? $this->request->query['q'] : '';
+		$pageTitle .= (!empty($this->request->query['categories'])) ? ' '.$this->request->query['categories'] : '';
+		$pageTitle .= (!empty($this->request->query['country'])) ? ' '.$this->request->query['country'] : '';
+		if (!empty($pageTitle)) {
+			$pageTitle .= ' < ';
+		}
+		$this->set('title_for_layout', $pageTitle . __('Resumes') . ' | ' . __SYSTEM_SITE_NAME);
 
 		$this->set('jobResumes', $this->paginate());
 	}
@@ -87,7 +94,9 @@ class JobResumesController extends JobsAppController {
 		}
 		$contain[] = 'Creator';
 		$this->JobResume->contain($contain);
-		$this->set('jobResume', $this->JobResume->read());
+		$jobResume = $this->JobResume->read();
+		$this->set('jobResume', $jobResume);
+		$this->set('page_title_for_layout', $jobResume['Creator']['full_name'] . ' < Resume | ' . __SYSTEM_SITE_NAME);
  	}
 
 /**
@@ -104,6 +113,26 @@ class JobResumesController extends JobsAppController {
  */
 	public function add() {
 		if ($this->request->is('post')) {
+			if (!empty($this->request->data['Media'])) {
+				foreach ($this->request->data['Media'] as $file) {
+					if (!empty($file['filename']['tmp_name'])) {
+						$media['Media'] = array(
+							'user_id' => CakeSession::read('Auth.User.id'),
+							'filename' => $file['filename'],
+							'title' => $file['title']
+						);
+						App::uses('Media', 'Media.Model');
+						$this->Media = new Media;
+						$this->Media->create();
+						$media = $this->Media->save($media);
+						$this->request->data['MediaAttachment'][] = array(
+							'model' => 'User',
+							'foreign_key' => $this->Auth->user('id'),
+							'media_id' => $this->Media->id
+						);
+					}
+				}
+			}
 			if ($this->JobResume->save($this->request->data)) {
 				$this->Session->setFlash(__('Resume saved'));
 				$this->redirect(array('action' => 'view', $this->JobResume->id));
@@ -112,6 +141,7 @@ class JobResumesController extends JobsAppController {
 		if (CakePlugin::loaded('Categories')) {
 			$this->set('categories', $this->JobResume->Category->find('list', array('conditions' => array('Category.model' => 'JobResume'))));
 		}
+		$this->set('page_title_for_layout', 'Add a Resume | ' . __SYSTEM_SITE_NAME);
 	}
 	
 /**
@@ -127,7 +157,29 @@ class JobResumesController extends JobsAppController {
 		if (!$this->JobResume->exists()) {
 			throw new NotFoundException(__('Resume not found'));
 		}
-		if ($this->request->is('put')) {
+		if ($this->request->is('put') || $this->request->is('post')) {
+			
+			if (!empty($this->request->data['Media'])) {
+				foreach ($this->request->data['Media'] as $file) {
+					if (!empty($file['filename']['tmp_name'])) {
+						$media['Media'] = array(
+							'user_id' => CakeSession::read('Auth.User.id'),
+							'filename' => $file['filename'],
+							'title' => $file['title']
+						);
+						App::uses('Media', 'Media.Model');
+						$this->Media = new Media;
+						$this->Media->create();
+						$media = $this->Media->save($media);
+						$this->request->data['MediaAttachment'][] = array(
+							'model' => 'User',
+							'foreign_key' => $this->Auth->user('id'),
+							'media_id' => $this->Media->id
+						);
+					}
+				}
+			}
+			
 			if ($this->JobResume->save($this->request->data)) {
 				$this->Session->setFlash(__('Resume saved'));
 				$this->redirect(array('action' => 'view', $this->JobResume->id));
@@ -141,6 +193,7 @@ class JobResumesController extends JobsAppController {
 		$contain[] = 'Creator';
 		$this->JobResume->contain($contain);
 		$this->request->data = $this->JobResume->read();
+		$this->set('page_title_for_layout', 'Resume Editor | ' . __SYSTEM_SITE_NAME);
 	}
 
 /**
