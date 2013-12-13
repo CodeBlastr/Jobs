@@ -39,6 +39,6 @@ class JobResume extends JobsAppModel {
 		if (empty($this->data['JobResume']['search_tags'])) {
 	        $this->data['JobResume']['search_tags'] = $this->data['JobResume']['leadin'];
 	   	}
-	   	return true;
+	   	return parent::beforeSave($options);
 	}
 }
