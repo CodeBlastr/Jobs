@@ -79,6 +79,7 @@ class JobResumesController extends JobsAppController {
  * View method
  * 
  * @param uuid $id
+ * @throws NotFoundException
  */
  	public function view($id = null) {
 		if ($id == 'my') {
@@ -114,7 +115,7 @@ class JobResumesController extends JobsAppController {
 	public function add() {
 		if ($this->request->is('post')) {
 			if (!empty($this->request->data['Media'])) {
-				foreach ($this->request->data['Media'] as $file) {
+				foreach ($this->request->data['Media'] as $k => $file) {
 					if (!empty($file['filename']['tmp_name'])) {
 						$media['Media'] = array(
 							'user_id' => CakeSession::read('Auth.User.id'),
@@ -130,11 +131,13 @@ class JobResumesController extends JobsAppController {
 							'foreign_key' => $this->Auth->user('id'),
 							'media_id' => $this->Media->id
 						);
+					} else {
+						unset($this->request->data['Media'][$k]);
 					}
 				}
 			}
 			if ($this->JobResume->save($this->request->data)) {
-				$this->Session->setFlash(__('Resume saved'));
+				$this->Session->setFlash(__('Resume saved'), 'flash_success');
 				$this->redirect(array('action' => 'view', $this->JobResume->id));
 			}
 		}
@@ -142,6 +145,86 @@ class JobResumesController extends JobsAppController {
 			$this->set('categories', $this->JobResume->Category->find('list', array('conditions' => array('Category.model' => 'JobResume'))));
 		}
 		$this->set('page_title_for_layout', 'Add a Resume | ' . __SYSTEM_SITE_NAME);
+	}
+	
+	/**
+	 * sorry... I needed to get the functionality of the single media inputs working.
+	 */
+	protected function _updateAttachments($jobResumeId) {
+			App::uses('Media', 'Media.Model');
+			$this->Media = new Media;
+			$attachedMediaIds = false;
+			$currentAttachments = $this->Media->MediaAttachment->find('all', array(
+					'conditions' => array(
+					'model' => 'JobResume',
+					'foreign_key' => $jobResumeId
+				)
+			));
+			if (!empty($currentAttachments)) {
+				$attachedMediaIds = Set::extract('/MediaAttachment/media_id', $currentAttachments);
+			}
+			
+			if (!empty($this->request->data['Media'])) {
+				foreach ($this->request->data['Media'] as $k => $file) {
+					// check if they uploaded a file
+					if (!empty($file['filename']['tmp_name'])) {
+						$media['Media'] = array(
+							'user_id' => CakeSession::read('Auth.User.id'),
+							'filename' => $file['filename'],
+							'title' => $file['title']
+						);
+						
+						// find if this "title" was attached already..
+						$replacing = $this->Media->find('first', array(
+							'conditions' => array(
+								'creator_id' => CakeSession::read('Auth.User.id'),
+								'title' => $file['title'],
+								'id' => $attachedMediaIds
+							)
+						));
+				
+						// save the newly submitted Media
+						$this->Media->create();
+						$media = $this->Media->save($media);
+						
+						if (!empty($replacing)) {
+							$replacements[] = array(
+								$replacing['Media']['id'], // replace me
+								$this->Media->id // with me
+							);
+						} else {
+							// add it to the MediaAttachment array
+							$this->request->data['MediaAttachment'][] = array(
+								'MediaAttachment' => array(
+									'model' => 'JobResume',
+									'foreign_key' => $jobResumeId,
+									'media_id' => $this->Media->id
+								)
+							);
+						}
+					} else {
+						// there was no file, just tags, empty the array
+						unset($this->request->data['Media'][$k]);
+					}
+				}
+			}
+			
+			if (!empty($replacements)) {
+				foreach ($currentAttachments as &$ca) {
+					foreach ($replacements as $replacethis) {
+						if ($ca['MediaAttachment']['media_id'] == $replacethis[0]) {
+							$ca['MediaAttachment']['media_id'] = $replacethis[1];
+						}
+					}
+				}
+			}
+
+			if (empty($this->request->data['MediaAttachment']) && !empty($currentAttachments)) {
+				$this->request->data['MediaAttachment'] = array();
+			}
+			$this->request->data['MediaAttachment'] = array_merge($currentAttachments, $this->request->data['MediaAttachment']);
+			
+			return $this->request->data['MediaAttachment'];
 	}
 	
 /**
@@ -157,29 +240,11 @@ class JobResumesController extends JobsAppController {
 		if (!$this->JobResume->exists()) {
 			throw new NotFoundException(__('Resume not found'));
 		}
+
 		if ($this->request->is('put') || $this->request->is('post')) {
 			
-			if (!empty($this->request->data['Media'])) {
-				foreach ($this->request->data['Media'] as $file) {
-					if (!empty($file['filename']['tmp_name'])) {
-						$media['Media'] = array(
-							'user_id' => CakeSession::read('Auth.User.id'),
-							'filename' => $file['filename'],
-							'title' => $file['title']
-						);
-						App::uses('Media', 'Media.Model');
-						$this->Media = new Media;
-						$this->Media->create();
-						$media = $this->Media->save($media);
-						$this->request->data['MediaAttachment'][] = array(
-							'model' => 'User',
-							'foreign_key' => $this->Auth->user('id'),
-							'media_id' => $this->Media->id
-						);
-					}
-				}
-			}
-			
+			$this->request->data['MediaAttachment'] = $this->_updateAttachments($this->JobResume->id);
+
 			if ($this->JobResume->save($this->request->data)) {
 				$this->Session->setFlash(__('Resume saved'));
 				$this->redirect(array('action' => 'view', $this->JobResume->id));
