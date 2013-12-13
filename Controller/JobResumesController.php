@@ -246,7 +246,7 @@ class JobResumesController extends JobsAppController {
 			$this->request->data['MediaAttachment'] = $this->_updateAttachments($this->JobResume->id);
 
 			if ($this->JobResume->save($this->request->data)) {
-				$this->Session->setFlash(__('Resume saved'));
+				$this->Session->setFlash(__('Resume saved'), 'flash_success');
 				$this->redirect(array('action' => 'view', $this->JobResume->id));
 			}
 		}
@@ -270,10 +270,10 @@ class JobResumesController extends JobsAppController {
 			throw new NotFoundException(__('Resume not found'));
 		}
 		if ($this->JobResume->delete($id)) {
-			$this->Session->setFlash(__('Resume deleted'));
+			$this->Session->setFlash(__('Resume deleted'), 'flash_success');
 			$this->redirect(array('action' => 'index'));
 		}
-		$this->Session->setFlash(__('Resume was not deleted'));
+		$this->Session->setFlash(__('Resume was not deleted'), 'flash_warning');
 	}
 
 }
