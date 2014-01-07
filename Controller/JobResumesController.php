@@ -129,7 +129,7 @@ class JobResumesController extends JobsAppController {
 						App::uses('Media', 'Media.Model');
 						$this->Media = new Media;
 						$this->Media->create();
-						$media = $this->Media->save($media);
+						$media = $this->Media->upload($media);
 						$this->request->data['MediaAttachment'][] = array(
 							'model' => 'User',
 							'foreign_key' => $this->Auth->user('id'),
@@ -189,7 +189,7 @@ class JobResumesController extends JobsAppController {
 				
 						// save the newly submitted Media
 						$this->Media->create();
-						$media = $this->Media->save($media);
+						$media = $this->Media->upload($media);
 						
 						if (!empty($replacing)) {
 							$replacements[] = array(
