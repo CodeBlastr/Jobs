@@ -105,7 +105,11 @@ class JobResumesController extends JobsAppController {
  */
  	protected function _getMy($url = array()) {
  		$id = $this->JobResume->field('id', array('JobResume.creator_id' => $this->Session->read('Auth.User.id')), 'created DESC');
-		$this->redirect($url + array($id));
+		if ($id) {
+			$this->redirect($url + array($id));
+		} else {
+			$this->redirect(array('action' => 'add'));
+		}
  	}
 	
 /**
