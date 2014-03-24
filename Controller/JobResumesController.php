@@ -18,8 +18,8 @@ class JobResumesController extends JobsAppController {
  * 
  */
 	public function index() {
-		$this->paginate['contain'][] = 'Creator';
-		if (CakePlugin::loaded('Categories')) {
+		//$this->paginate['contain'][] = 'Creator';
+		/* if (CakePlugin::loaded('Categories')) {
 			$this->paginate['contain'][] = 'Category';
 			
 			if (isset($this->request->query['categories']) && !empty($this->request->query['categories'])) {
@@ -69,10 +69,19 @@ class JobResumesController extends JobsAppController {
 		$pageTitle .= (!empty($this->request->query['country'])) ? ' '.$this->request->query['country'] : '';
 		if (!empty($pageTitle)) {
 			$pageTitle .= ' < ';
-		}
+		} */
+		
+		//$this->loadModel("JobResume");
+        $jobs = $this->JobResume->query('SELECT  a.name,a.id,b.id as jrid,b.name as jrname,b.email
+FROM jobs a
+        INNER JOIN job_resumes b
+            ON  a.id = b.job_id 
+  ORDER BY b.job_id');
+		
 		$this->set('title_for_layout', $pageTitle . __('Resumes') . ' | ' . __SYSTEM_SITE_NAME);
 
-		$this->set('jobResumes', $this->paginate());
+		//$this->set('jobResumes', $this->paginate());
+		$this->set('jobResumes', $jobs);
 	}
 
 /**
@@ -118,6 +127,10 @@ class JobResumesController extends JobsAppController {
  */
 	public function add() {
 		if ($this->request->is('post')) {
+		//echo "<pre>";
+		//print_r($this->request->data);
+		//var_dump($this->data);
+		//exit;
 			if (!empty($this->request->data['Media'])) {
 				foreach ($this->request->data['Media'] as $k => $file) {
 					if (!empty($file['filename']['tmp_name'])) {
@@ -141,8 +154,9 @@ class JobResumesController extends JobsAppController {
 				}
 			}
 			if ($this->JobResume->save($this->request->data)) {
-				$this->Session->setFlash(__('Resume saved'), 'flash_success');
-				$this->redirect(array('action' => 'view', $this->JobResume->id));
+				//$this->Session->setFlash(__('Resume saved'), 'flash_success');
+				//$this->redirect(array('action' => 'view', $this->JobResume->id));
+				$this->redirect('/thanks');
 			}
 		}
 		if (CakePlugin::loaded('Categories')) {
@@ -246,9 +260,9 @@ class JobResumesController extends JobsAppController {
 		}
 
 		if ($this->request->is('put') || $this->request->is('post')) {
-			
+			if (!empty($this->request->data['Media'])) {
 			$this->request->data['MediaAttachment'] = $this->_updateAttachments($this->JobResume->id);
-
+            }
 			if ($this->JobResume->save($this->request->data)) {
 				$this->Session->setFlash(__('Resume saved'), 'flash_success');
 				$this->redirect(array('action' => 'view', $this->JobResume->id));

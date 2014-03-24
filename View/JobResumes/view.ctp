@@ -1,16 +1,16 @@
-
-<?php echo $this->element('Galleries.thumb', array('model' => 'User', 'foreignKey' => $jobResume['Creator']['id'])); ?>
-<?php echo $jobResume['Creator']['full_name']; ?>
-<?php echo $jobResume['JobResume']['email']; ?>
-<?php echo $jobResume['JobResume']['phone']; ?>
-<?php echo $jobResume['JobResume']['cover']; ?>
-<?php echo $jobResume['JobResume']['street']; ?>
-<?php echo $jobResume['JobResume']['city']; ?>
-<?php echo $jobResume['JobResume']['state']; ?>
-<?php echo $jobResume['JobResume']['zip']; ?>
-<?php echo $jobResume['JobResume']['country']; ?>
-<?php echo $jobResume['JobResume']['leadin']; ?>
-<?php echo $jobResume['JobResume']['addon']; ?>
+<?php //echo $this->element('Galleries.thumb', array('model' => 'User', 'foreignKey' => $jobResume['Creator']['id'])); ?>
+Full Name: <p><?php echo $jobResume['JobResume']['name']; ?></p>
+Email: <p><?php echo $jobResume['JobResume']['email']; ?></p>
+Phone: <p><?php echo $jobResume['JobResume']['phone']; ?></p>
+Cover Letter: <p><?php echo $jobResume['JobResume']['cover']; ?></p>
+Resume: <p><?php echo $jobResume['JobResume']['resume']; ?></p>
+Street: <p><?php echo $jobResume['JobResume']['street']; ?></p>
+City: <p><?php echo $jobResume['JobResume']['city']; ?></p>
+State: <p><?php echo $jobResume['JobResume']['state']; ?></p>
+Zip: <p><?php echo $jobResume['JobResume']['zip']; ?></p>
+Country: <p><?php echo $jobResume['JobResume']['country']; ?></p>
+<!--Lead In: <p><?php //echo $jobResume['JobResume']['leadin']; ?></p>
+Add On: <p><?php //echo $jobResume['JobResume']['addon']; ?></p> -->
 
 <?php if (!empty($jobResume['Category'][0])) : ?>
 	<?php foreach ($jobResume['Category'] as $category) : ?>
