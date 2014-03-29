@@ -1,17 +1,15 @@
 <div class="list-group">
-	<?php foreach ($job as $jj) : ?>
+	<?php foreach ($jobs as $job) : ?>
 		<div class="list-group-item clearfix">
 			<div class="media">
 				<div class="media-body col-md-8">
-					Job Title: <?php echo $this->Html->link($jj['Job']['name'], array('action' => 'view', $jj['Job']['id'])); ?>
-					 <br /> 
-					 Job Description: <p class="truncate" data-truncate="100">
-						 <?php echo strip_tags($jj['Job']['description']); ?>
+					<?php echo $this->Html->link($job['Job']['name'], array('action' => 'view', $job['Job']['id'])); ?>
+					<p class="truncate" data-truncate="100">
+						 <?php echo strip_tags($job['Job']['description']); ?>
 					</p>
-					Created Date: <?php echo date('d-m-Y',strtotime($jj['Job']['created'])); ?>
-				</div>
-				<div style="float:right">
-				<?php echo $this->Html->link(__('View Job'), array('action' => 'view', $jj['Job']['id']));?>
+					<div class="label label-primary">
+						Created : <?php echo ZuhaInflector::datify($job['Job']['created']); ?>
+					</div>
 				</div>
 			</div>
 		</div>

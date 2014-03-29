@@ -1,22 +1,8 @@
-
-<?php //echo $this->element('Galleries.thumb', array('model' => 'User', 'foreignKey' => $job['Creator']['id'])); ?>
-<?php echo $job['Creator']['full_name']; ?>
-<?php echo "<br />"; ?>
-<?php echo $job['Job']['name']; ?>
-<?php echo $job['Job']['description']; ?>
-<?php if($job['Job']['is_featured'] == 1)
-           {
-		    echo "Featured Job";
-		   }
-		   else
-		   {
-		   echo "Non Featured Job";
-		   }
-
- ?>
-<div style="float:right">
-				<?php echo $this->Html->link(__('Apply to this job'), array('controller' => 'job_resumes','action' => 'add', $job['Job']['id']));?>
-	</div>
+<div class="jobs view">
+	<h1><?php echo $job['Job']['name']; ?></h1>
+	<?php echo $job['Job']['description']; ?>
+	<?php echo $this->Html->link(__('Apply'), array('controller' => 'job_resumes','action' => 'add', $job['Job']['id']), array('class' => 'btn btn-primary'));?>
+</div>
 <?php
 // set the contextual menu items
 $this->set('context_menu', array('menus' => array(

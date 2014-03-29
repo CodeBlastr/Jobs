@@ -40,7 +40,7 @@ class JobsController extends JobsAppController {
 		}
 		$this->set('title_for_layout', $pageTitle . __('Jobs') . ' | ' . __SYSTEM_SITE_NAME);
 
-		$this->set('job', $this->paginate());
+		$this->set('jobs', $this->paginate());
 	}
 
 /**

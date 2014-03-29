@@ -28,22 +28,23 @@ class Job extends JobsAppModel {
 			),			
 		);
 
-	public $belongsTo = array('Creator' => array(
+	public $belongsTo = array(
+		'Creator' => array(
 			'className' => 'Users.User',
-			'foreignKey' => 'creator_id',
-			'conditions' => '',
-			'fields' => '',
-			'order' => ''
-		));
-		
-		
+			'foreignKey' => 'creator_id'
+			)
+		);
 
-	public function __construct($id = false, $table = null, $ds = null) {
-		parent::__construct($id, $table, $ds);
-	}
-	
-	public function beforeSave($options = array()){
-		
-	   	return parent::beforeSave($options);
-	}
+/**
+ * Has many
+ * 
+ * @var array $hasMany
+ */
+	public $hasMany = array(
+		'JobResume' => array(
+			'className' => 'Jobs.JobResume',
+			'foreignKey' => 'job_id',
+			'dependent' => false
+		)
+	);
 }
