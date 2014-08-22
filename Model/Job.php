@@ -47,4 +47,23 @@ class Job extends JobsAppModel {
 			'dependent' => false
 		)
 	);
+
+/**
+ * Constructor
+ */
+	public function __construct($id = false, $table = null, $ds = null) {
+		if (CakePlugin::loaded('Categories')) {
+			$this->hasAndBelongsToMany['Category'] = array(
+	            'className' => 'Categories.Category',
+	       		'joinTable' => 'categorized',
+	            'foreignKey' => 'foreign_key',
+	            'associationForeignKey' => 'category_id',
+	    		'conditions' => array('Categorized.model' => 'Job'),
+	    		'counterCache' => 'record_count'
+	    		// 'unique' => true,
+	            );
+			$this->actsAs['Categories.Categorizable'] = array('modelAlias' => 'Job');
+		}
+		parent::__construct($id, $table, $ds);
+	}
 }

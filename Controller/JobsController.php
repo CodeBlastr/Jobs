@@ -1,14 +1,14 @@
 <?php
-class JobsController extends JobsAppController {
+class AppJobsController extends JobsAppController {
 
 	public $name = 'Jobs';
 	
 	public $uses = array('Jobs.Job');
 	
 	 public function __construct($request = null, $response = null) {
-	 if (CakePlugin::loaded('Categories')) {
-	 	$this->components[] = 'Categories.Categories';
-	 }
+		 if (CakePlugin::loaded('Categories')) {
+		 	$this->components[] = 'Categories.Categories';
+		 }
 		parent::__construct($request, $response);
 	 
 	}
@@ -20,27 +20,44 @@ class JobsController extends JobsAppController {
 	public function index() {
 		$this->paginate['contain'][] = 'Creator';
 		$this->paginate['order']['Job.created'] = 'DESC';
-				$this->paginate['fields'] = array(
-					'DISTINCT Job.id',
-					'Job.name',
-					'Job.description',
-					'Job.created'
-					);
+
+		// Categories support			
+		if(isset($this->request->query['categories'])) {
+			// example url = /jobs/jobs/index/?categories=Auburn;California (will only return jobs that are in BOTH categories)
+			$categoryNames = explode(';', rawurldecode($this->request->query['categories']));
+			$this->set('categories', $categories = $this->Job->Category->find('all', array('conditions' => array('Category.name' => $categoryNames))));
+			$categoryIds = Set::extract('/Category/id', $categories);
+			for ($i = 0; $i < count($categoryIds); $i++) {
+				$joins[] = array(
+					'table' => 'categorized',
+					'alias' => 'Categorized' . $i,
+					'type' => 'INNER',
+					'conditions' => array(
+						"Categorized{$i}.foreign_key = Job.id",
+						"Categorized{$i}.model = 'Job'",
+						'Categorized' . $i . '.category_id' => $categoryIds[$i]
+					)
+				);
+			}
+			$this->paginate['joins'] = $joins;
+			$this->paginate['contain'][] = 'Category';
+			$this->set('childCategories', $childCategories = $this->Job->Category->find('all', array('conditions' => array('Category.parent_id' => $categoryIds))));
+		}
+		
 		if (isset($this->request->query['q']) && !empty($this->request->query['q'])) {
 			$this->paginate['conditions']['OR'] = array(
 				'Job.name LIKE' => '%' . $this->request->query['q'] . '%',
 				'Job.description LIKE' => '%' . $this->request->query['q'] . '%'
 			);
 		}
-
 		$pageTitle = '';
 		$pageTitle .= (!empty($this->request->query['q'])) ? $this->request->query['q'] : '';
 		if (!empty($pageTitle)) {
 			$pageTitle .= ' < ';
 		}
 		$this->set('title_for_layout', $pageTitle . __('Jobs') . ' | ' . __SYSTEM_SITE_NAME);
-
-		$this->set('jobs', $this->paginate());
+		$this->set('jobs', $this->request->data = $this->paginate());
+		return $this->request->data;
 	}
 
 /**
@@ -79,13 +96,15 @@ class JobsController extends JobsAppController {
 	
 	public function add() {
 		if ($this->request->is('post')) {
-			
-			if ($this->Job->save($this->request->data)) {
+			if ($this->Job->saveAll($this->request->data)) {
 				$this->Session->setFlash(__('Job saved'), 'flash_success');
 				$this->redirect(array('action' => 'view', $this->Job->id));
 			}
 		}
 		
+		if (CakePlugin::loaded('Categories')) {
+			$this->set('categories', $this->Job->Category->generateTreeList(array('Category.model' => 'Job')));
+		}
 		$this->set('page_title_for_layout', 'Add a Job | ' . __SYSTEM_SITE_NAME);
 	}
 	
@@ -105,18 +124,23 @@ class JobsController extends JobsAppController {
 		
 
 		if ($this->request->is('put') || $this->request->is('post')) {
-		if ($this->Job->save($this->request->data)) {
+			if ($this->Job->saveAll($this->request->data)) {
 				$this->Session->setFlash(__('Job saved'), 'flash_success');
 				$this->redirect(array('action' => 'view', $this->Job->id));
 			}
 		}
 		
+		if (CakePlugin::loaded('Categories')) {
+			$this->set('categories', $this->Job->Category->generateTreeList(array('Category.model' => 'Job')));
+			$contain[] = 'Category';
+		}
 		$contain[] = 'Creator';
 		$this->Job->contain($contain);
-		$this->request->data = $this->Job->read();
+		$this->request->data = $this->Job->read();		
 		$this->set('page_title_for_layout', 'Job Editor | ' . __SYSTEM_SITE_NAME);
 	}
-	/**
+
+/**
  * Delete method
  */
 	public function delete($id = null) {
@@ -142,8 +166,11 @@ FROM jobs a
 	$this->set('jobsdata', $jobs);
 	
 	}
-	
+}
 
 
+if (!isset($refuseInit)) {
+	class JobsController extends AppJobsController {
+	}
 
 }

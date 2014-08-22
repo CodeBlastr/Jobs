@@ -90,9 +90,10 @@ class JobResume extends JobsAppModel {
 			'fields' => '',
 			'order' => ''
 		));
-		
-		
 
+/**
+ * Constructor
+ */
 	public function __construct($id = false, $table = null, $ds = null) {
 		if(CakePlugin::loaded('Media')) {
 			$this->actsAs[] = 'Media.MediaAttachable';
@@ -110,7 +111,10 @@ class JobResume extends JobsAppModel {
 		}
 		parent::__construct($id, $table, $ds);
 	}
-	
+
+/**
+ * Before save callback
+ */
 	public function beforeSave($options = array()){
 		if (empty($this->data['JobResume']['search_tags'])) {
 	        $this->data['JobResume']['search_tags'] = $this->data['JobResume']['leadin'];
