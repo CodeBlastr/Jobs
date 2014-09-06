@@ -1,5 +1,5 @@
 <div class="jobResumes add form">
-	<?php echo $this->Form->create('Job'); ?>
+	<?php echo $this->Form->create('Job', array('url' => array('action' => 'add'))); ?>
 	<fieldset>
 	<legend><?php echo __('Job Info'); ?></legend>
 		<?php echo $this->Form->input('Job.name'); ?>

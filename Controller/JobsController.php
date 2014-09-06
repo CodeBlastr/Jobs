@@ -20,12 +20,20 @@ class AppJobsController extends JobsAppController {
 	public function index() {
 		$this->paginate['contain'][] = 'Creator';
 		$this->paginate['order']['Job.created'] = 'DESC';
+		$this->paginate['conditions']['Job.is_public'] = 1;
 
 		// Categories support			
 		if(isset($this->request->query['categories'])) {
 			// example url = /jobs/jobs/index/?categories=Auburn;California (will only return jobs that are in BOTH categories)
 			$categoryNames = explode(';', rawurldecode($this->request->query['categories']));
-			$this->set('categories', $categories = $this->Job->Category->find('all', array('conditions' => array('Category.name' => $categoryNames))));
+			$this->set('categories', $categories = $this->Job->Category->find('all', array(
+				'conditions' => array(
+					'Category.name' => $categoryNames
+					),
+				'order' => array(
+					'Category.lft' => 'DESC'
+					)
+				))); // children first so that the 0 element is the youngest child (for use on the jobs index, when you choose Alabma > Auburn for example)
 			$categoryIds = Set::extract('/Category/id', $categories);
 			for ($i = 0; $i < count($categoryIds); $i++) {
 				$joins[] = array(
