@@ -1,7 +1,7 @@
 <?php
 App::uses('JobsAppModel', 'Jobs.Model');
 
-class Job extends JobsAppModel {
+class AppJob extends JobsAppModel {
 
 	public $name = 'Job';
 
@@ -19,13 +19,7 @@ class Job extends JobsAppModel {
 				'rule' => 'notEmpty',
 				'message' => 'Please enter a value for description',
 				),
-			),
-          'is_featured' => array(
-			'notempty' => array(
-				'rule' => 'notEmpty',
-				'message' => 'Please select radio button',
-				),
-			),			
+			)		
 		);
 
 	public $belongsTo = array(
@@ -66,4 +60,11 @@ class Job extends JobsAppModel {
 		}
 		parent::__construct($id, $table, $ds);
 	}
+}
+
+
+if (!isset($refuseInit)) {
+	class Job extends AppJob {
+	}
+
 }

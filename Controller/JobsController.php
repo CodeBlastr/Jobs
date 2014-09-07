@@ -10,9 +10,12 @@ class AppJobsController extends JobsAppController {
 		 	$this->components[] = 'Categories.Categories';
 		 }
 		parent::__construct($request, $response);
-	 
 	}
-
+	
+	public function dashboard() {
+		$this->paginate['order']['Job.created'] = 'DESC';
+		$this->set('jobs', $this->paginate());
+	}
 /**
  * Index method
  * 
@@ -158,7 +161,7 @@ class AppJobsController extends JobsAppController {
 		}
 		if ($this->Job->delete($id)) {
 			$this->Session->setFlash(__('Job deleted'), 'flash_success');
-			$this->redirect(array('action' => 'index'));
+			$this->redirect(array('action' => 'dashboard'));
 		}
 		$this->Session->setFlash(__('Job was not deleted'), 'flash_warning');
 	}
@@ -173,6 +176,28 @@ FROM jobs a
 	
 	$this->set('jobsdata', $jobs);
 	
+	}
+
+	public function archive($id) {
+		$this->Job->id = $id;
+		if ($this->Job->saveField('is_public', 0)) {
+			$this->Session->setFlash('Job canceled');
+			$this->redirect($this->referer()); 
+		} else {
+			$this->Session->setFlash('Error, please try again.');
+			$this->redirect($this->referer()); 
+		}
+	}
+
+	public function publish($id) {
+		$this->Job->id = $id;
+		if ($this->Job->saveField('is_public', 1)) {
+			$this->Session->setFlash('Job published');
+			$this->redirect($this->referer()); 
+		} else {
+			$this->Session->setFlash('Error, please try again.');
+			$this->redirect($this->referer()); 
+		}
 	}
 }
 
