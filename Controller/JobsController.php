@@ -25,34 +25,36 @@ class AppJobsController extends JobsAppController {
 		$this->paginate['order']['Job.created'] = 'DESC';
 		$this->paginate['conditions']['Job.is_public'] = 1;
 
-		// Categories support			
-		if(isset($this->request->query['categories'])) {
-			// example url = /jobs/jobs/index/?categories=Auburn;California (will only return jobs that are in BOTH categories)
-			$categoryNames = explode(';', rawurldecode($this->request->query['categories']));
-			$this->set('categories', $categories = $this->Job->Category->find('all', array(
-				'conditions' => array(
-					'Category.name' => $categoryNames
-					),
-				'order' => array(
-					'Category.lft' => 'DESC'
-					)
-				))); // children first so that the 0 element is the youngest child (for use on the jobs index, when you choose Alabma > Auburn for example)
-			$categoryIds = Set::extract('/Category/id', $categories);
-			for ($i = 0; $i < count($categoryIds); $i++) {
-				$joins[] = array(
-					'table' => 'categorized',
-					'alias' => 'Categorized' . $i,
-					'type' => 'INNER',
+		// Categories support
+		if (CakePlugin::loaded('Categories')) {	
+			if(isset($this->request->query['categories'])) {
+				// example url = /jobs/jobs/index/?categories=Auburn;California (will only return jobs that are in BOTH categories)
+				$categoryNames = explode(';', rawurldecode($this->request->query['categories']));
+				$this->set('categories', $categories = $this->Job->Category->find('all', array(
 					'conditions' => array(
-						"Categorized{$i}.foreign_key = Job.id",
-						"Categorized{$i}.model = 'Job'",
-						'Categorized' . $i . '.category_id' => $categoryIds[$i]
-					)
-				);
+						'Category.name' => $categoryNames
+						),
+					'order' => array(
+						'Category.lft' => 'DESC'
+						)
+					))); // children first so that the 0 element is the youngest child (for use on the jobs index, when you choose Alabma > Auburn for example)
+				$categoryIds = Set::extract('/Category/id', $categories);
+				for ($i = 0; $i < count($categoryIds); $i++) {
+					$joins[] = array(
+						'table' => 'categorized',
+						'alias' => 'Categorized' . $i,
+						'type' => 'INNER',
+						'conditions' => array(
+							"Categorized{$i}.foreign_key = Job.id",
+							"Categorized{$i}.model = 'Job'",
+							'Categorized' . $i . '.category_id' => $categoryIds[$i]
+						)
+					);
+				}
+				$this->paginate['joins'] = $joins;
+				$this->paginate['contain'][] = 'Category';
+				$this->set('childCategories', $childCategories = $this->Job->Category->find('all', array('conditions' => array('Category.parent_id' => $categoryIds))));
 			}
-			$this->paginate['joins'] = $joins;
-			$this->paginate['contain'][] = 'Category';
-			$this->set('childCategories', $childCategories = $this->Job->Category->find('all', array('conditions' => array('Category.parent_id' => $categoryIds))));
 		}
 		
 		if (isset($this->request->query['q']) && !empty($this->request->query['q'])) {
