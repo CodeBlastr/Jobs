@@ -1,7 +1,7 @@
 <?php
 App::uses('JobsAppModel', 'Jobs.Model');
 
-class JobResume extends JobsAppModel {
+class AppJobResume extends JobsAppModel {
 
 	public $name = 'JobResume';
 
@@ -13,83 +13,22 @@ class JobResume extends JobsAppModel {
 				'rule' => 'notEmpty',
 				'message' => 'Please enter a value for name'				
 				),
-			),
-		'email' => array(
-			'emailRequired' => array(
-				'rule' => array('_emailRequired'),
-				'message' => 'Email required.Please try again.',
-				'allowEmpty' => true
-				),
-			),
-			'email' => array(
-        		'rule'    => array('email', true),
-        		'message' => 'Please supply a valid email address.',
-				'allowEmpty' => true
-    		),
-          'phone' => array(
-			'notempty' => array(
-				'rule' => 'numeric',
-				'allowEmpty' => true,
-				'message' => 'Phone number should be numeric',
-				),
-			),
-        'street' => array(
-			'notempty' => array(
-				'rule' => 'notEmpty',
-				'message' => 'Phone enter street',
-				),
-			),
-         'city' => array(
-			'notempty' => array(
-				'rule' => 'notEmpty',
-				'message' => 'Phone enter city',
-				),
-			),
-        'city' => array(
-			'notempty' => array(
-				'rule' => 'notEmpty',
-				'message' => 'Phone enter city',
-				),
-			),
-        'state' => array(
-			'notempty' => array(
-				'rule' => 'notEmpty',
-				'message' => 'Phone select state',
-				),
-			),
-         'zip' => array(
-			'notempty' => array(
-				'rule' => 'notEmpty',
-				'message' => 'Phone enter zip',
-				),
-			),
-        'country' => array(
-			'notempty' => array(
-				'rule' => 'notEmpty',
-				'message' => 'Phone select country',
-				),
-			),
-        'leadin' => array(
-			'notempty' => array(
-				'rule' => 'notEmpty',
-				'message' => 'Phone enter leadin',
-				),
-			),
-        'addon' => array(
-			'notempty' => array(
-				'rule' => 'notEmpty',
-				'message' => 'Phone enter addon',
-				),
-			),			
+			)	
 		);
 
-	 public $belongsTo = array('Creator' => array(
+	 public $belongsTo = array(
+	 	'Creator' => array(
 			'className' => 'Users.User',
 			'foreignKey' => 'creator_id',
 			'conditions' => '',
 			'fields' => '',
 			'order' => ''
-		));
+			),
+		'Job' => array(
+			'className' => 'Jobs.Job',
+			'foreignKey' => 'job_id'
+			)
+		);
 
 /**
  * Constructor
@@ -118,10 +57,28 @@ class JobResume extends JobsAppModel {
 	public function beforeSave($options = array()){
 		if (empty($this->data['JobResume']['search_tags'])) {
 	        $this->data['JobResume']['search_tags'] = $this->data['JobResume']['leadin'];
-			}
+		}
 	   	return parent::beforeSave($options);
 	}
+
+/**
+ * After save method
+ * Use a job credit on creation
+ */
+ 	public function afterSave($created, $options = array()) {
+ 		if ($created) {
+ 			$jobResume = $this->find('first', array('conditions' => array('JobResume.id' => $this->id), 'contain' => array('Job' => array('Creator'))));
+			if (!empty($jobResume['Job']['Creator']['email'])) {
+	 			$this->__sendMail($jobResume['Job']['Creator']['email'], 'Webpages.job-resume-notification', $jobResume);
+	 		}
+ 		}
+ 	}
 	
-	
-	
+}
+
+
+if (!isset($refuseInit)) {
+	class JobResume extends AppJobResume {
+	}
+
 }

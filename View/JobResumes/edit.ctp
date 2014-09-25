@@ -1,5 +1,5 @@
 <div class="jobResumes add form">
-	<?php echo $this->Form->create('JobResume'); ?>
+	<?php echo $this->Form->create('JobResume', array('type' => 'file')); ?>
 	<fieldset>
 		<?php echo $this->Form->input('JobResume.id'); ?>
 		<?php echo $this->Form->input('JobResume.name'); ?>

@@ -1,5 +1,5 @@
 <?php
-class JobResumesController extends JobsAppController {
+class AppJobResumesController extends JobsAppController {
 
 	public $name = 'JobResumes';
 	
@@ -16,7 +16,7 @@ class JobResumesController extends JobsAppController {
  * Index method
  * 
  */
-	public function index() {
+	public function index($jobId = null) {
 		//$this->paginate['contain'][] = 'Creator';
 		/* if (CakePlugin::loaded('Categories')) {
 			$this->paginate['contain'][] = 'Category';
@@ -72,10 +72,14 @@ class JobResumesController extends JobsAppController {
 		
 		//$this->loadModel("JobResume");
 		
+		$this->Job->id = $jobId;
+		if (!$this->Job->exists()) {
+			throw new NotFoundException(__('Job not found'));
+		}
 		$this->set('title_for_layout', $pageTitle . __('Resumes') . ' | ' . __SYSTEM_SITE_NAME);
-		$this->paginate['contain'][] = 'JobResume';
-		$this->set('jobResumes', $jobs = $this->paginate('Job'));
-		debug($jobs);
+		$this->paginate['contain'][] = 'Job';
+		$this->paginate['conditions']['JobResume.job_id'] = $jobId;
+		$this->set('jobResumes', $jobResumes = $this->paginate('JobResume'));
 	}
 
 /**
@@ -126,8 +130,11 @@ class JobResumesController extends JobsAppController {
 		}
 		if ($this->request->is('post')) {
 			if ($this->JobResume->save($this->request->data)) {
-				$this->Session->setFlash(__('Application saved'));
-				$this->redirect(array('action' => 'view', $this->JobResume->id));
+				$this->Session->setFlash(__('Application sent'), 'flash_success');
+				$this->redirect(array('plugin' => 'jobs', 'controller' => 'jobs', 'action' => 'view', $this->request->data['JobResume']['job_id'])); // required on pj ^ RK
+			} else {
+				debug($this->JobResume->invalidFields());
+				exit;
 			}
 		}
 		
@@ -138,9 +145,9 @@ class JobResumesController extends JobsAppController {
 		$this->set('page_title_for_layout', __('Apply to %s | %s ', $job['Job']['name'], __SYSTEM_SITE_NAME));
 	}
 	
-	/**
-	 * sorry... I needed to get the functionality of the single media inputs working.
-	 */
+/**
+ * sorry... I needed to get the functionality of the single media inputs working.
+ */
 	protected function _updateAttachments($jobResumeId) {
 			App::uses('Media', 'Media.Model');
 			$this->Media = new Media;
@@ -265,6 +272,13 @@ class JobResumesController extends JobsAppController {
 			$this->redirect(array('action' => 'index'));
 		}
 		$this->Session->setFlash(__('Resume was not deleted'), 'flash_warning');
+	}
+
+}
+
+
+if (!isset($refuseInit)) {
+	class JobResumesController extends AppJobResumesController {
 	}
 
 }
