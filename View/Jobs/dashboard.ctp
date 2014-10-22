@@ -1,4 +1,4 @@
-<div class="jobs dashboard clearfix">
+<div class="jobs dashboard clearfix table-responsive">
 	<table class="table table-striped table-hover">
 		<thead>
 			<tr>
