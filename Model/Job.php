@@ -60,11 +60,59 @@ class AppJob extends JobsAppModel {
 		}
 		parent::__construct($id, $table, $ds);
 	}
+
+	public function paginate($conditions, $fields, $order, $limit, $page = 1, $recursive = null, $extra = array()) {
+		$recursive = -1;
+		$dbJobs = $this->find('all', compact('conditions', 'fields', 'order', 'limit', 'page', 'recursive'));
+		
+		if (!array_key_exists('indeed', ConnectionManager::enumConnectionObjects())) {
+			return $dbJobs;
+		}
+
+		if ($extra['extra']['jobtype']) {
+			if ($extra['extra']['jobtype'] === 'Part-time') {
+				$jobTypeIndeed = 'parttime';
+			} else {
+				$jobTypeIndeed = 'fulltime';
+			}
+		} else {
+			$jobTypeIndeed = '';
+		}
+
+		if($page == 1) {
+			$indeedStart = 0;
+		} elseif ($page > 1) {
+			$indeedStart = $limit * ($page - 1) - count($dbJobs) + ($page - 1);
+		}
+		App::uses('Indeed', 'Jobs.Model');
+		$this->Indeed = new Indeed();
+		$indeedJobs = $this->Indeed->find('all', array(
+			'keywords' => $extra['extra']['keywords'],
+			'jobtype' => $jobTypeIndeed,
+			'location' => $extra['extra']['location'],
+			'country' => 'us',
+			'start' => $indeedStart,
+			'limit' => $limit - count($dbJobs),
+			'sort' => 'date'
+		));
+		return array_merge($dbJobs, $indeedJobs);
+	}
+	
+    public function paginateCount($conditions = null, $recursive = 0, $extra = array()) {
+        $this->recursive = $recursive;
+        $jobsindb = count($this->find('all', compact('conditions', 'recursive')));
+		if (!array_key_exists('indeed', ConnectionManager::enumConnectionObjects())) {
+			return $jobsindb;
+		}
+
+        $indeedjobs = ConnectionManager::getDataSource('indeed')->numResults;
+        return $jobsindb + $indeedjobs;
+    }
+
 }
 
 
 if (!isset($refuseInit)) {
 	class Job extends AppJob {
 	}
-
 }
