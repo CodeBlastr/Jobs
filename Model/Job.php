@@ -63,8 +63,9 @@ class AppJob extends JobsAppModel {
 
 	public function paginate($conditions, $fields, $order, $limit, $page = 1, $recursive = null, $extra = array()) {
 		$recursive = -1;
-		$dbJobs = $this->find('all', compact('conditions', 'fields', 'order', 'limit', 'page', 'recursive'));
-		
+		$contain = $extra['contain'];
+		$joins = $extra['joins'];
+		$dbJobs = $this->find('all', compact('conditions', 'fields', 'order', 'limit', 'page', 'recursive', 'contain', 'joins'));
 		if (!array_key_exists('indeed', ConnectionManager::enumConnectionObjects())) {
 			return $dbJobs;
 		}
