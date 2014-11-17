@@ -33,13 +33,13 @@ class IndeedSource extends DataSource {
 				. '&l=' . $conditions['location']
 				. '&sort=' . $conditions['sort']
 				. '&radius=' . $conditions['radius']
-				. '&st='
-				. '&jt=' . $conditions['jobtype']
+				. '&st=' // Site type. To show only jobs from job boards use "jobsite". For jobs from direct employer websites use "employer".
+				. '&jt=' . $conditions['jobtype'] // Job type. Allowed values: "fulltime", "parttime", "contract", "internship", "temporary".
 				. '&start=' . $conditions['start']
 				. '&limit=' . $conditions['limit']
-				. '&fromage='
-				. '&filter='
-				. '&latlong=0'
+				. '&fromage=30' // Number of days back to search.
+				. '&filter=' // Filter duplicate results. 0 turns off duplicate job filtering. Default is 1.
+				. '&latlong=0' // If latlong=1, returns latitude and longitude information for each job result. Default is 0.
 				. '&co=' . $conditions['country']
 				. '&chnl=' . $this->config['channel']
 				. '&userip=' . getenv("REMOTE_ADDR")
