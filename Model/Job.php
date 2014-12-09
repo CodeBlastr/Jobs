@@ -96,18 +96,21 @@ class AppJob extends JobsAppModel {
 			'limit' => $limit - count($dbJobs),
 			'sort' => 'date'
 		));
+
+		$this->indeedCount = $this->Indeed->numResults;
 		return array_merge($dbJobs, $indeedJobs);
 	}
 	
     public function paginateCount($conditions = null, $recursive = 0, $extra = array()) {
         $this->recursive = $recursive;
-        $jobsindb = count($this->find('all', compact('conditions', 'recursive')));
+		$contain = $extra['contain'];
+		$joins = $extra['joins'];
+        $jobsindb = count($this->find('all', compact('conditions', 'recursive', 'contain', 'joins')));
 		if (!array_key_exists('indeed', ConnectionManager::enumConnectionObjects())) {
 			return $jobsindb;
 		}
 
-        $indeedjobs = ConnectionManager::getDataSource('indeed')->numResults;
-        return $jobsindb + $indeedjobs;
+        return $jobsindb + $this->indeedCount;
     }
 
 }

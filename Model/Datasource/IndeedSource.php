@@ -48,10 +48,9 @@ class IndeedSource extends DataSource {
 
 		$response = simplexml_load_string($this->connection->get($grabindeed));
 
-		$this->numResults = (int) $response->totalresults;
+		$model->numResults = $this->numResults = (int) $response->totalresults;
 
 		$results = array();
-
 		$i = 0;
 		foreach ($response->results->result as $aJob) :
 			$results[$i]['Job'] = array(
